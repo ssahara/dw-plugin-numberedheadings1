@@ -49,17 +49,21 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
     /**
      * Connect pattern to lexer
      */
+    protected $mode;
+
+    function preConnect() {
+        // syntax mode, drop 'syntax_' from class name
+        $this->mode = substr(get_class($this), 7);
+    }
+
     function connectTo($mode) {
-        $this->Lexer->addSpecialPattern( '{{header>[1-5]}}',
-                                         $mode,
-                                         'plugin_numberedheadings');
-        // added new parameter (matches the parameter name for better recognition)
-        $this->Lexer->addSpecialPattern( '{{startlevel>[1-5]}}',
-                                         $mode,
-                                         'plugin_numberedheadings');
-        $this->Lexer->addSpecialPattern( '^[ \t]*={2,6}\s?\-[^\n]+={2,6}[ \t]*(?=\n)',
-                                         $mode,
-                                         'plugin_numberedheadings');
+        $this->Lexer->addSpecialPattern(
+                        '{{header>[1-5]}}', $mode, $this->mode);
+        $this->Lexer->addSpecialPattern(
+                        '{{startlevel>[1-5]}}', $mode, $this->mode);
+
+        $this->Lexer->addSpecialPattern(
+                        '^[ \t]*={2,6}\s?\-[^\n]+={2,6}[ \t]*(?=\n)', $mode, $this->mode);
     }
 
     /**
