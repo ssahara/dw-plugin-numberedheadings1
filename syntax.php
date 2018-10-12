@@ -25,12 +25,6 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
     var $startlevel = 0; // level to start with numbered headings (default = 2)
     var $tailingdot = 0; // show a tailing dot after numbers (default = 0)
 
-    var $levels = array( '======'=>1,
-                         '====='=>2,
-                         '===='=>3,
-                         '==='=>4,
-                         '=='=>5);
-
     var $headingCount = [ 1 => 0, 2=> 0, 3 => 0, 4 => 0, 5 => 0];
 
     function __construct() {
@@ -77,9 +71,9 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
             return true;
         }
 
-        // define the level of the heading
-        preg_match('/(={2,})/', $match, $heading);
-        $level = $this->levels[$heading[1]];
+        // get level of the heading
+        $title = trim($match);
+        $level = 7 - strspn($title, '=');
 
         // obtain the startnumber if defined
         if (preg_match('/#([0-9]+)\s/', $match, $startnumber) && ($startnumber[1]) > 0) {
