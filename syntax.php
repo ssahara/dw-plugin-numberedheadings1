@@ -76,14 +76,19 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
         $level = 7 - strspn($title, '=');
 
         // obtain the startnumber if defined
-        if (preg_match('/#([0-9]+)\s/', $match, $startnumber) && ($startnumber[1]) > 0) {
-            $this->headingCount[$level] = $startnumber[1];
+        $title = trim($title, '= ');
+        $title = ltrim($title, '- ');
+        if ($title[0] == '#') {
+            $title = substr($title, 1); // drop #
+            $i = strspn($title, '0123456789');
+            $number = substr($title, 0, $i) + 0;
+            $title  = substr($title, $i);
+            // set the number of the heading
+            $this->headingCount[$level] = $number;
 
             //delete the startnumber-setting markup from string
             $match = preg_replace('/#[0-9]+\s/', ' ', $match);
-
         } else {
-
             // increment the number of the heading
             $this->headingCount[$level]++;
         }
