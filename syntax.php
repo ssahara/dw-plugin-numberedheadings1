@@ -76,8 +76,8 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
         $level = 7 - strspn($title, '=');
 
         // obtain the startnumber if defined
-        $title = trim($title, '= ');
-        $title = ltrim($title, '- ');
+        $title = trim($title, '= ');  // drop heading markup
+        $title = ltrim($title, '- '); // not drop tailing -
         if ($title[0] == '#') {
             $title = substr($title, 1); // drop #
             $i = strspn($title, '0123456789');
@@ -85,9 +85,6 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
             $title  = substr($title, $i);
             // set the number of the heading
             $this->headingCount[$level] = $number;
-
-            //delete the startnumber-setting markup from string
-            $match = preg_replace('/#[0-9]+\s/', ' ', $match);
         } else {
             // increment the number of the heading
             $this->headingCount[$level]++;
@@ -109,8 +106,9 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
         // delete the tailing dot if wished (default)
         $headingNumber = ($this->tailingdot) ? $headingNumber : substr($headingNumber,0,-1);
 
-        // insert the number...
-        $match = preg_replace('/(={2,}\s?)\-/', '${1}'.$headingNumber, $match);
+        // revise the match
+        $markup = str_repeat('=', 7 - $level);
+        $match = $markup.' '.$headingNumber.' '.$title.' '.$markup;
 
         // ... and return to original behavior
         $handler->header($match, $state, $pos);
