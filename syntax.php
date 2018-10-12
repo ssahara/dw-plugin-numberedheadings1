@@ -16,9 +16,8 @@
  * @author     Lars J. Metz <dokuwiki@meistermetz.de>
  */
 
-if(!defined('DOKU_INC')) define('DOKU_INC',realpath(dirname(__FILE__).'/../../').'/');
-if(!defined('DOKU_PLUGIN')) define('DOKU_PLUGIN',DOKU_INC.'lib/plugins/');
-require_once(DOKU_PLUGIN.'syntax.php');
+// must be run within Dokuwiki
+if(!defined('DOKU_INC')) die();
 
 class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
 
@@ -32,31 +31,24 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
                          '==='=>4,
                          '=='=>5);
 
-    var $headingCount =
-                 array(  1=>0,
-                         2=>0,
-                         3=>0,
-                         4=>0,
-                         5=>0);
+    var $headingCount = [ 1 => 0, 2=> 0, 3 => 0, 4 => 0, 5 => 0];
 
-    function syntax_plugin_numberedheadings() {
+    function __construct() {
         $this->startlevel = $this->getConf('startlevel');
         $this->tailingdot = $this->getConf('tailingdot');
-    }
-
-    function getInfo(){
-        return array( 'author' => 'Lars J. Metz',
-                      'email'  => 'dokuwiki@meistermetz.de',
-                      'date'   => '2010-05-12',
-                      'name'   => 'Plugin: Numbered Headings',
-                      'desc'   => 'Adds numbered headings to DokuWiki',
-                      'url'    => 'http://www.dokuwiki.org/plugin:NumberedHeadings');
     }
 
     function getType(){
         return 'substition';
     }
 
+    function getSort() {
+        return 45;
+    }
+
+    /**
+     * Connect pattern to lexer
+     */
     function connectTo($mode) {
         $this->Lexer->addSpecialPattern( '{{header>[1-5]}}',
                                          $mode,
@@ -70,11 +62,10 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
                                          'plugin_numberedheadings');
     }
 
-    function getSort() {
-        return 45;
-    }
-
-    function handle($match, $state, $pos, &$handler){
+    /**
+     * Handle the match
+     */
+    function handle($match, $state, $pos, Doku_Handler $handler) {
 
         // obtain the startlevel from the page if defined
         if (preg_match('/{{[a-z]{6,10}>([1-5]+)}}/', $match, $startlevel)) {
@@ -101,15 +92,15 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
 
         // build the actual number
         $headingNumber = '';
-        for ($i=$this->startlevel;$i<=5;$i++) {
+        for ($i = $this->startlevel; $i <= 5; $i++) {
 
             // reset the number of the subheadings
-            if ($i>$level) {
+            if ($i > $level) {
                 $this->headingCount[$i] = 0;
             }
 
             // build the number of the heading
-            $headingNumber .= ($this->headingCount[$i]!=0) ? $this->headingCount[$i].'.' : '';
+            $headingNumber .= ($this->headingCount[$i] != 0) ? $this->headingCount[$i].'.' : '';
         }
 
         // delete the tailing dot if wished (default)
@@ -124,7 +115,10 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
         return true;
     }
 
-    function render($format, &$renderer, $data) {
+    /**
+     * Create output
+     */
+    function render($format, Doku_Renderer $renderer, $data) {
         //do nothing (already done by original render-method)
     }
 }
