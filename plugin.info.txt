@@ -1,0 +1,7 @@
+base     numberedheadings
+author   Lars J. Metz
+email    dokuwiki@meistermetz.de
+date     2010-05-12
+name     Plugin: Numbered Headings
+desc     Adds numbered headings to DokuWiki
+url      https://www.dokuwiki.org/plugin:NumberedHeadings

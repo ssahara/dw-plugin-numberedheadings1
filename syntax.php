@@ -128,4 +128,3 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
         //do nothing (already done by original render-method)
     }
 }
-//Setup VIM: ex: et ts=4 enc=utf-8 :
