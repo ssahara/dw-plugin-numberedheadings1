@@ -51,17 +51,19 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
         $this->mode = substr(get_class($this), 7);
 
         // syntax pattern
+        $this->pattern[0] = '~~HEADLINE NUMBERING FIRST LEVEL = \d~~';
         $this->pattern[5] = '^[ \t]*={2,6} ?-(?: ?#[0-9]+)? [^\n]+={2,6}[ \t]*(?=\n)';
     }
 
     function connectTo($mode) {
+        $this->Lexer->addSpecialPattern($this->pattern[0], $mode, $this->mode);
+        $this->Lexer->addSpecialPattern($this->pattern[5], $mode, $this->mode);
+
+        // backward compatibility, to be obsoleted in future ...
         $this->Lexer->addSpecialPattern(
                         '{{header>[1-5]}}', $mode, $this->mode);
         $this->Lexer->addSpecialPattern(
                         '{{startlevel>[1-5]}}', $mode, $this->mode);
-
-        $this->Lexer->addSpecialPattern(
-                        $this->pattern[5], $mode, $this->mode);
     }
 
     /**
