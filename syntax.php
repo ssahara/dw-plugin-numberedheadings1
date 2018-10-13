@@ -23,7 +23,6 @@ if(!defined('DOKU_INC')) die();
 class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
 
     protected $startlevel, $tailingdot;
-    protected $headingCount = [ 1 => 0, 2=> 0, 3 => 0, 4 => 0, 5 => 0];
 
     function __construct() {
         // retrieve once config settings
@@ -71,6 +70,9 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
      */
     function handle($match, $state, $pos, Doku_Handler $handler) {
 
+        // counter for hierarchical numbering
+        static $headingCount = [ 1 => 0, 2=> 0, 3 => 0, 4 => 0, 5 => 0];
+
         // obtain the startlevel from the page if defined
         if ($match[0] != '=') {
             $this->startlevel = substr($match, -3, 1);
@@ -90,21 +92,21 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
             $number = substr($title, 0, $i) + 0;
             $title  = substr($title, $i);
             // set the number of the heading
-            $this->headingCount[$level] = $number;
+            $headingCount[$level] = $number;
         } else {
             // increment the number of the heading
-            $this->headingCount[$level]++;
+            $headingCount[$level]++;
         }
 
         // reset the number of the subheadings
         for ($i = $level +1; $i <= 5; $i++) {
-            $this->headingCount[$i] = 0;
+            $headingCount[$i] = 0;
         }
 
         // build tiered numbers for hierarchical headings
         $numbers = [];
         for ($i = $this->startlevel; $i <= $level; $i++) {
-            $numbers[] = $this->headingCount[$i];
+            $numbers[] = $headingCount[$i];
         }
         $tieredNumber = implode('.', $numbers);
         if (count($numbers) == 1) {
