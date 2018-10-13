@@ -21,13 +21,13 @@ if(!defined('DOKU_INC')) die();
 
 class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
 
-    // is now set in configuration manager
-    var $startlevel = 0; // level to start with numbered headings (default = 2)
-    var $tailingdot = 0; // show a tailing dot after numbers (default = 0)
-
-    var $headingCount = [ 1 => 0, 2=> 0, 3 => 0, 4 => 0, 5 => 0];
+    protected $startlevel, $tailingdot;
+    protected $headingCount = [ 1 => 0, 2=> 0, 3 => 0, 4 => 0, 5 => 0];
 
     function __construct() {
+        // retrieve once config settings
+        //   startlevel: level to start with numbered headings (default = 2)
+        //   tailingdot: show a tailing dot after numbers (default = 0)
         $this->startlevel = $this->getConf('startlevel');
         $this->tailingdot = $this->getConf('tailingdot');
     }
