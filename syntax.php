@@ -76,7 +76,7 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
         // obtain the startlevel from the page if defined
         if ($match[0] != '=') {
             $this->startlevel = substr($match, -3, 1);
-            return true;
+            return false;
         }
 
         // get level of the heading
@@ -124,7 +124,7 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
         // ... and return to original behavior
         $handler->header($match, $state, $pos);
 
-        return true;
+        return false;
     }
 
     /**
