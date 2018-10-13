@@ -69,8 +69,8 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
     function handle($match, $state, $pos, Doku_Handler $handler) {
 
         // obtain the startlevel from the page if defined
-        if (preg_match('/{{[a-z]{6,10}>([1-5]+)}}/', $match, $startlevel)) {
-            $this->startlevel = $startlevel[1];
+        if ($match[0] != '=') {
+            $this->startlevel = substr($match, -3, 1);
             return true;
         }
 
