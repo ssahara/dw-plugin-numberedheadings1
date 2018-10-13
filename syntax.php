@@ -14,6 +14,7 @@
  *
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
  * @author     Lars J. Metz <dokuwiki@meistermetz.de>
+ * @author     Satoshi Sahara <sahara.satoshi@gmail.com>
  */
 
 // must be run within Dokuwiki
@@ -26,7 +27,7 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
 
     function __construct() {
         // retrieve once config settings
-        //   startlevel: level to start with numbered headings (default = 2)
+        //   startlevel: upper headline level for hierarchical numbering (default = 2)
         //   tailingdot: show a tailing dot after numbers (default = 0)
         $this->startlevel = $this->getConf('startlevel');
         $this->tailingdot = $this->getConf('tailingdot');
