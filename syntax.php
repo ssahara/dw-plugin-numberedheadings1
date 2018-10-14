@@ -1,13 +1,13 @@
 <?php
 /**
- * Plugin Numbered Headings: Plugin to add numbered headings to DokuWiki-Syntax
+ * DokuWiki Plugin Numbered Headings: add tiered numbers for hierarchical headings
  *
  * Usage:   ====== - Heading Level 1======
  *          ===== - Heading Level 2 =====
  *          ===== - Heading Level 2 =====
  *                   ...
  *
- * =>       1 Heading Level 1
+ * =>       1. Heading Level 1
  *              1.1 Heading Level 2
  *              1.2 Heading Level 2
  *          ...
@@ -17,7 +17,7 @@
  * @author     Satoshi Sahara <sahara.satoshi@gmail.com>
  */
 
-// must be run within Dokuwiki
+// must be run within DokuWiki
 if(!defined('DOKU_INC')) die();
 
 class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
