@@ -90,7 +90,7 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
             $title = substr($title, 1); // drop #
             $i = strspn($title, '0123456789');
             $number = substr($title, 0, $i) + 0;
-            $title  = substr($title, $i);
+            $title  = ltrim(substr($title, $i));
             // set the number of the heading
             $headingCount[$level] = $number;
         } else {
@@ -108,18 +108,24 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
         for ($i = $this->startlevel; $i <= $level; $i++) {
             $numbers[] = $headingCount[$i];
         }
-        $tieredNumber = implode('.', $numbers);
-        if (count($numbers) == 1) {
-            // append always tailing dot for single tiered number
-            $tieredNumber .= '.';
-        } elseif ($tieredNumber && $this->tailingdot) {
-            // append tailing dot if wished
-            $tieredNumber .= '.';
+        if ($numbers) {
+            $tieredNumber = implode('.', $numbers);
+            if (count($numbers) == 1) {
+                // append always tailing dot for single tiered number
+                $tieredNumber .= '.';
+            } elseif ($tieredNumber && $this->tailingdot) {
+                // append tailing dot if wished
+                $tieredNumber .= '.';
+            }
+            // append figure space after tiered number to distinguish title
+            $tieredNumber .= ' '; // U+2007 figure space
+        } else {
+            $tieredNumber = '';
         }
 
         // revise the match
         $markup = str_repeat('=', 7 - $level);
-        $match = $markup.' '.$tieredNumber.' '.$title.' '.$markup;
+        $match = $markup.' '.$tieredNumber.$title.' '.$markup;
 
         // ... and return to original behavior
         $handler->header($match, $state, $pos);
