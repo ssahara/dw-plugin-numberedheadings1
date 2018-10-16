@@ -113,7 +113,7 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
             if (count($numbers) == 1) {
                 // append always tailing dot for single tiered number
                 $tieredNumber .= '.';
-            } elseif ($tieredNumber && $this->tailingdot) {
+            } elseif ($this->tailingdot) {
                 // append tailing dot if wished
                 $tieredNumber .= '.';
             }
@@ -125,7 +125,7 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
 
         // revise the match
         $markup = str_repeat('=', 7 - $level);
-        $match = $markup.' '.$tieredNumber.$title.' '.$markup;
+        $match = $markup.$tieredNumber.$title.$markup;
 
         // ... and return to original behavior
         $handler->header($match, $state, $pos);

@@ -25,8 +25,8 @@ class action_plugin_numberedheadings extends DokuWiki_Action_Plugin {
      */
     function _tieredNumber(Doku_Event $event) {
         if ($event->data[0] == 'xhtml') {
-            $search = '/(<h\d.*?>)([\d.]+)(?= )/u'; // U+2007 figure space
-            $replacement = '${1}<span class="tiered_number">${2}</span>';
+            $search = '/(<h\d.*?>)([\d.]+)(?: )/u'; // U+2007 figure space
+            $replacement = '${1}<span class="tiered_number">${2}</span>'."\t";
             $event->data[1] = preg_replace($search, $replacement, $event->data[1]);
         }
     }
