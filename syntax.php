@@ -2,14 +2,14 @@
 /**
  * DokuWiki Plugin Numbered Headings: add tiered numbers for hierarchical headings
  *
- * Usage:   ====== - Heading Level 1======
- *          ===== - Heading Level 2 =====
- *          ===== - Heading Level 2 =====
- *                   ...
+ * Usage:   ====== # Heading Level 1======
+ *          ===== # Heading Level 2 =====
+ *          ==== # Heading Level 3 ====
+ *          ...
  *
  * =>       1. Heading Level 1
- *              1.1 Heading Level 2
- *              1.2 Heading Level 2
+ *          1.1 Heading Level 2
+ *          1.1.1 Heading Level 3
  *          ...
  *
  * @license    GPL 2 (http://www.gnu.org/licenses/gpl.html)
@@ -50,19 +50,15 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
         $this->mode = substr(get_class($this), 7);
 
         // syntax pattern
-        $this->pattern[0] = '~~HEADLINE NUMBERING FIRST LEVEL = \d~~';
-        $this->pattern[5] = '^[ \t]*={2,6} ?-(?: ?#[0-9]+)? [^\n]+={2,6}[ \t]*(?=\n)';
+        // Numbers only, no title headings : ex. "#1.", "#1.2", "#1.2.3"
+        $this->pattern[0] = '^[ \t]*={2,} ?#\d+(?:\.\d*)* *={2,}[ \t]*(?=\n)';
+        // Numbered headings : ex. "# Title", "#0 Title"
+        $this->pattern[5] = '^[ \t]*={2,} ?#\d* [^\n]+={2,}[ \t]*(?=\n)';
     }
 
     function connectTo($mode) {
         $this->Lexer->addSpecialPattern($this->pattern[0], $mode, $this->mode);
         $this->Lexer->addSpecialPattern($this->pattern[5], $mode, $this->mode);
-
-        // backward compatibility, to be obsoleted in future ...
-        $this->Lexer->addSpecialPattern(
-                        '{{header>[1-5]}}', $mode, $this->mode);
-        $this->Lexer->addSpecialPattern(
-                        '{{startlevel>[1-5]}}', $mode, $this->mode);
     }
 
     /**
@@ -73,59 +69,59 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
         // counter for hierarchical numbering
         static $headingCount = [ 1 => 0, 2=> 0, 3 => 0, 4 => 0, 5 => 0];
 
-        // obtain the startlevel from the page if defined
-        if ($match[0] != '=') {
-            $this->startlevel = substr($match, -3, 1);
-            return false;
-        }
-
         // get level of the heading
         $title = trim($match);
-        $level = 7 - strspn($title, '=');
+        $level = 7 - min(strspn($title, '='), 6);
 
-        // obtain the startnumber if defined
         $title = trim($title, '= ');  // drop heading markup
-        $title = ltrim($title, '- '); // not drop tailing -
+
         if ($title[0] == '#') {
+        error_log(' ! heading Lv='.$level.' tier='.$tier.' param='.$param.' title='.$title);
             $title = substr($title, 1); // drop #
-            $i = strspn($title, '0123456789');
-            $number = substr($title, 0, $i) + 0;
-            $title  = ltrim(substr($title, $i));
-            // set the number of the heading
-            $headingCount[$level] = $number;
-        } else {
-            // increment the number of the heading
-            $headingCount[$level]++;
+            $param = substr($title, 0, strspn($title, '.0123456789'));
+            $title = ltrim(substr($title, strlen($param)));
+            $tier = $level - $this->startlevel +1;
         }
 
-        // reset the number of the subheadings
+        error_log(' ! heading Lv='.$level.' tier='.$tier.' param='.$param.' title='.$title);
+
+        // param with tierd numbers
+        if (strpos($param, '.') !== false) { // syntax pattern[0]
+            // make current heading level as tier 1
+            $this->startlevel = $level;
+            // set number of tier 1, and clear numbers of sub-tier's level
+            $numbers = explode('.', $param);
+            foreach ($numbers as $k => $number) {
+                $headingCount[$level + $k] = $number +0;
+            }
+
+        error_log(' ! heading counter:'.var_export($headingCount, 1));
+
+            return false; // nothing rendered
+        }
+
+        // set number for current level, and clear numbers of sub-tier's level
+        $headingCount[$level] = ($param) ? $param +0 : $headingCount[$level] +1;
         for ($i = $level +1; $i <= 5; $i++) {
             $headingCount[$i] = 0;
         }
 
         // build tiered numbers for hierarchical headings
-        $numbers = [];
-        for ($i = $this->startlevel; $i <= $level; $i++) {
-            $numbers[] = $headingCount[$i];
-        }
-        if ($numbers) {
-            $tieredNumber = implode('.', $numbers);
-            if (count($numbers) == 1) {
+        $numbers = array_slice($headingCount, $this->startlevel -1, $tier);
+        $tieredNumber = implode('.', $numbers);
+        if (count($numbers) == 1) {
                 // append always tailing dot for single tiered number
                 $tieredNumber .= '.';
-            } elseif ($this->tailingdot) {
+        } elseif ($this->tailingdot) {
                 // append tailing dot if wished
                 $tieredNumber .= '.';
-            }
-            // append figure space after tiered number to distinguish title
-            $tieredNumber .= ' '; // U+2007 figure space
-        } else {
-            $tieredNumber = '';
         }
+        // append figure space after tiered number to distinguish title
+        $tieredNumber .= ' '; // U+2007 figure space
 
         // revise the match
         $markup = str_repeat('=', 7 - $level);
-        $match = $markup.$tieredNumber.$title.$markup;
+        $match = $markup . $tieredNumber . $title . $markup;
 
         // ... and return to original behavior
         $handler->header($match, $state, $pos);
