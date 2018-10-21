@@ -22,16 +22,6 @@ if(!defined('DOKU_INC')) die();
 
 class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
 
-    protected $startlevel, $tailingdot;
-
-    function __construct() {
-        // retrieve once config settings
-        //   startlevel: upper headline level for hierarchical numbering (default = 2)
-        //   tailingdot: show a tailing dot after numbers (default = 0)
-        $this->startlevel = $this->getConf('startlevel');
-        $this->tailingdot = $this->getConf('tailingdot');
-    }
-
     function getType(){
         return 'substition';
     }
@@ -66,9 +56,6 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
      */
     function handle($match, $state, $pos, Doku_Handler $handler) {
 
-        // counter for hierarchical numbering
-        static $headingCount = [ 1 => 0, 2=> 0, 3 => 0, 4 => 0, 5 => 0];
-
         // get level of the heading
         $title = trim($match);
         $level = 7 - min(strspn($title, '='), 6);
@@ -76,48 +63,22 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
         $title = trim($title, '= ');  // drop heading markup
 
         if ($title[0] == '#') {
-        error_log(' ! heading Lv='.$level.' tier='.$tier.' param='.$param.' title='.$title);
             $title = substr($title, 1); // drop #
             $param = substr($title, 0, strspn($title, '.0123456789'));
             $title = ltrim(substr($title, strlen($param)));
-            $tier = $level - $this->startlevel +1;
         }
 
-        error_log(' ! heading Lv='.$level.' tier='.$tier.' param='.$param.' title='.$title);
-
-        // param with tierd numbers
-        if (strpos($param, '.') !== false) { // syntax pattern[0]
-            // make current heading level as tier 1
-            $this->startlevel = $level;
-            // set number of tier 1, and clear numbers of sub-tier's level
-            $numbers = explode('.', $param);
-            foreach ($numbers as $k => $number) {
-                $headingCount[$level + $k] = $number +0;
-            }
-
-        error_log(' ! heading counter:'.var_export($headingCount, 1));
-
-            return false; // nothing rendered
-        }
-
-        // set number for current level, and clear numbers of sub-tier's level
-        $headingCount[$level] = ($param) ? $param +0 : $headingCount[$level] +1;
-        for ($i = $level +1; $i <= 5; $i++) {
-            $headingCount[$i] = 0;
-        }
+        error_log(' ! heading Lv='.$level.' param='.$param.' title='.$title);
 
         // build tiered numbers for hierarchical headings
-        $numbers = array_slice($headingCount, $this->startlevel -1, $tier);
-        $tieredNumber = implode('.', $numbers);
-        if (count($numbers) == 1) {
-                // append always tailing dot for single tiered number
-                $tieredNumber .= '.';
-        } elseif ($this->tailingdot) {
-                // append tailing dot if wished
-                $tieredNumber .= '.';
+        if (strpos($param, '.') !== false) { // syntax pattern[0]
+            $numbers = explode('.', $param);
+        } else {
+            $numbers = [ $param ];
         }
-        // append figure space after tiered number to distinguish title
-        $tieredNumber .= ' '; // U+2007 figure space
+        $tieredNumber = $this->_tiered_number($level, $numbers);
+
+        if(empty($tieredNumber)) return false;
 
         // revise the match
         $markup = str_repeat('=', 7 - $level);
@@ -128,6 +89,65 @@ class syntax_plugin_numberedheadings extends DokuWiki_Syntax_Plugin {
 
         return false;
     }
+
+    /*
+     * Tiered numbering 
+     */
+    function _tiered_number($level, array $numbers) {
+
+        // counter for hierarchical numbering
+        static $headingCount = [ 1 => 0, 2=> 0, 3 => 0, 4 => 0, 5 => 0];
+
+        // startlevel: upper heading level for hierarchical numbering (default = 2)
+        static $startlevel;
+        if(!isset($startlevel)) $startlevel = $this->getConf('startlevel');
+
+        // tierd numbers
+        if (count($numbers) > 1) { // syntax pattern[0]
+
+            // make current heading level as tier 1
+            $startlevel = $level;
+
+            // set number of tier 1, and clear numbers of sub-tier's level
+            foreach ($numbers as $k => $number) {
+                $headingCount[$level + $k] = $number +0;
+            }
+
+            error_log(' ! heading counter:'.var_export($headingCount, 1));
+
+            return '';
+        }
+
+
+        // set number for current level, and clear numbers of sub-tier's level
+        $number = is_numeric($numbers[0]) ? $numbers[0] +0 : null;
+
+        error_log(' ! _tiered_number: level='.$level.' ->'.var_export($numbers, 1));
+
+        $headingCount[$level] = $number ?? $headingCount[$level] +1;
+        for ($i = $level +1; $i <= 5; $i++) {
+            $headingCount[$i] = 0;
+        }
+
+        // build tiered number for hierarchical headings
+        $tier = $level - $startlevel +1;
+        $tiers = array_slice($headingCount, $startlevel -1, $tier);
+        $tieredNumber = implode('.', $tiers);
+
+        if (count($tiers) == 1) {
+            // append always tailing dot for single tiered number
+            $tieredNumber .= '.';
+        } elseif ($this->getConf('tailingdot')) {
+            // append tailing dot if wished
+            $tieredNumber .= '.';
+        }
+        // append figure space after tiered number to distinguish title
+        $tieredNumber .= ' '; // U+2007 figure space
+        error_log(' ! _tiered_number: return='.$tieredNumber);
+
+        return $tieredNumber;
+    }
+
 
     /**
      * Create output
